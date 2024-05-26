@@ -1,7 +1,7 @@
 from zhipuai import ZhipuAI
 import os
 
-glm_key = os.environ.get('glm_key')
+glm_key = os.environ.get('GLM_KEY')
 client = ZhipuAI(api_key=glm_key)
 
 

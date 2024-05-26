@@ -1,7 +1,7 @@
 from openai import OpenAI
 import os
 
-deepseek_key = os.environ.get('deepseek_key')
+deepseek_key = os.environ.get('DEEPSEEK_KEY')
 
 client = OpenAI(api_key=deepseek_key, base_url="https://api.deepseek.com")
 
@@ -11,7 +11,7 @@ def chat(message: str) -> str:
         model="deepseek-chat",
         messages=[
             {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": "Hello"},
+            {"role": "user", "content": message},
         ],
         stream=False
     )
