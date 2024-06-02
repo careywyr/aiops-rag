@@ -13,6 +13,14 @@ docker run -d --name neo4j \
 	-v /Users/carey/Documents/docker_data/neo4j/import:/var/lib/neo4j/import \  
 	--env NEO4J_AUTH=neo4j/password \  
 	neo4j:5.20.0-community-ubi9 
+	
+docker run -d -p 9200:9200 -p 9300:9300 \
+  -e "discovery.type=single-node" \
+  -e "network.host=0.0.0.0" \
+  -e "xpack.security.enabled=false" \
+  -v /Users/carey/Documents/docker_data/es/data:/usr/share/elasticsearch/data \
+  --name elasticsearch elasticsearch:8.13.0 
+
 ```
 
 

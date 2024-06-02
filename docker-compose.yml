@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.20.0-community-ubi9
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - /Users/carey/Documents/docker_data/neo4j/data:/data
+      - /Users/carey/Documents/docker_data/neo4j/logs:/logs
+      - /Users/carey/Documents/docker_data/neo4j/conf:/var/lib/neo4j/conf
+      - /Users/carey/Documents/docker_data/neo4j/import:/var/lib/neo4j/import
+
+  elasticsearch:
+    image: elasticsearch:8.13.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /Users/carey/Documents/docker_data/es/config:/usr/share/elasticsearch/config
+      - /Users/carey/Documents/docker_data/es/data:/usr/share/elasticsearch/data
+      - /Users/carey/Documents/docker_data/es/logs:/usr/share/elasticsearch/logs
+      - /Users/carey/Documents/docker_data/es/plugins:/usr/share/elasticsearch/plugins
