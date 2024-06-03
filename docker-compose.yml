@@ -21,8 +21,12 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
+    environment:
+      - network.host=0.0.0.0
+      - xpack.security.enabled=false
+      - discovery.type=single-node
     volumes:
-      - /Users/carey/Documents/docker_data/es/config:/usr/share/elasticsearch/config
+#      - /Users/carey/Documents/docker_data/es/config:/usr/share/elasticsearch/config
       - /Users/carey/Documents/docker_data/es/data:/usr/share/elasticsearch/data
       - /Users/carey/Documents/docker_data/es/logs:/usr/share/elasticsearch/logs
       - /Users/carey/Documents/docker_data/es/plugins:/usr/share/elasticsearch/plugins

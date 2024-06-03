@@ -7,8 +7,13 @@
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 import html2text
-import es
 from pojo import DataModel
+import es
+from langchain.text_splitter import MarkdownTextSplitter
+import copy
+
+
+markdown_splitter = MarkdownTextSplitter(chunk_size=512, chunk_overlap=128)
 
 
 def parse_node(node, catalogs):
@@ -55,7 +60,7 @@ def html_to_markdown(html_content):
 
 def read_file(root_path):
     data_models = parse_xml(root_path + '/nodetree.xml')
-
+    print(f'要处理的文件数量: {len(data_models)}')
     for data_model in data_models:
         print(f'name: {data_model.name}, url: {data_model.url}, Doctype: {data_model.doctype}, Catalogs: {data_model.catalogs}')
         # 按照url去读取文件
@@ -68,8 +73,17 @@ def read_file(root_path):
         body = soup.find('body')
         body = html_to_markdown(str(body))
         data_model.content = body
-        es.store_to_elasticsearch([data_model])
-        break
+        if len(body) > 512:
+            docs = markdown_splitter.create_documents([body])
+            for doc in docs:
+                print(doc.page_content)
+                save_data = copy.deepcopy(data_model)
+                save_data.content = doc.page_content
+                # es.store([save_data])
+                break
+        else:
+            # es.store([data_model])
+            break
 
 
 file_path = '/Users/carey/Documents/workspace2024/aiops2024-challenge-dataset/zedxzip/director'

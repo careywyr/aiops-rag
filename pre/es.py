@@ -13,7 +13,7 @@ es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 index_name = 'aiops'
 
 
-def store_to_elasticsearch(data_models: [DataModel]):
+def store(data_models: [DataModel]):
     for data_model in data_models:
         print(f"save model, name: {data_model.name}")
         doc = {
@@ -52,6 +52,3 @@ def search_by_name(query: str):
     response = es.search(index=index_name, body=body)
     return response['hits']['hits']
 
-
-a = search_by_content("更新历史")
-print(a)
