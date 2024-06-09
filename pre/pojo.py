@@ -7,8 +7,10 @@
 
 
 class DataModel:
-    def __init__(self, name: str, content: str, url: str, doctype: str, catalogs: [str], keywords: [str],
+    def __init__(self, root: str, name: str, content: str, url: str, doctype: str, catalogs: [str], keywords: [str],
                  vector: [float]):
+        # 根目录名称rcp/director/emsplus/umac
+        self.root = root
         # 文档名称（不是文件名称）
         self.name = name
         # 文本内容

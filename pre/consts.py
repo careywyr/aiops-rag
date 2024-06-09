@@ -5,11 +5,11 @@
 @author  : leafw
 """
 
-# 直接被转换成txt的文件目录
-TXT_DATA_DIR = '/Users/carey/Documents/workspace2024/aiops2024-challenge-dataset/data'
+# html汇总
+HTML_ROOT = '/Users/carey/Documents/workspace2024/aiops2024-challenge-dataset/zedxzip'
 # HTML根目录
-HTML_DATA_DIR_DIRECTOR = '/Users/carey/Documents/workspace2024/aiops2024-challenge-dataset/zedxzip/director'
-HTML_DATA_DIR_EMSPLUS = HTML_DATA_DIR_DIRECTOR + '/emsplus'
-HTML_DATA_DIR_RCP = HTML_DATA_DIR_DIRECTOR + '/rcp'
-HTML_DATA_DIR_UNMAC = HTML_DATA_DIR_DIRECTOR + '/unmac'
+HTML_ROOT_DIRECTOR = [HTML_ROOT + '/director', 'director']
+HTML_ROOT_EMSPLUS = [HTML_ROOT + '/emsplus', 'emsplus']
+HTML_ROOT_RCP = [HTML_ROOT + '/rcp', 'rcp']
+HTML_ROOT_UMAC = [HTML_ROOT + '/umac', 'umac']
 
