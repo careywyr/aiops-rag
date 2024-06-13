@@ -5,7 +5,7 @@
 @author  : leafw
 """
 
-from pojo import DataModel
+from .pojo import DataModel
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 from api import embedding
@@ -117,4 +117,29 @@ def vectorize_all():
     es.clear_scroll(scroll_id=sid)
 
 
-vectorize_all()
+def search_by_vector(query_vector, top_n=10):
+    query = {
+        "size": top_n,
+        "query": {
+            "script_score": {
+                "query": {
+                    "match_all": {}
+                },
+                "script": {
+                    "source": "(cosineSimilarity(params.query_vector, 'vector') + 1.0) / 2",
+                    "params": {
+                        "query_vector": query_vector
+                    }
+                }
+            }
+        }
+    }
+
+    response = es.search(index=index_name, body=query)
+    return response
+
+
+# question = 'PCF与NRF对接时，一般需要配置哪些数据？'
+# query_vector = embedding.embedding(question)
+# r = search_by_vector(query_vector)
+# print(r)
