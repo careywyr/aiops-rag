@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer("/Users/carey/Documents/workspace2024/bce-embedding-base_v1")
+model = SentenceTransformer("D:\\Workspace\\models\\bce-embedding-base_v1", device='cuda')
 
 
 def embedding(sentence: str):
