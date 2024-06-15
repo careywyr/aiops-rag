@@ -11,12 +11,12 @@ import jsonlines
 
 
 questions = './dataset/question.jsonl'
-outputs = './dataset/output.jsonl'
+outputs = './dataset/output5.jsonl'
 
 
-def run(query):
+def run(query, document):
     vec = embedding.embedding(query)
-    kg = es.search_by_vector(vec)
+    kg = es.search_by_vector(vec, document)
     contents = [hit['_source']['content'] for hit in kg['hits']['hits']]
     background = "\n\n".join(contents)
     answer = final_answer.answer(background, query)
@@ -29,10 +29,12 @@ def process_jsonl(input_file, output_file):
         for obj in reader:
             print(f"开始处理第{obj['id']}个问题")
             query = obj['query']
-            answer = run(query)
+            document = obj['document']
+            answer = run(query, document)
             result = {
                 "id": obj['id'],
                 "query": query,
+                "document": document,
                 "answer": answer
             }
             writer.write(result)

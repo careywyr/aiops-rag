@@ -117,20 +117,31 @@ def vectorize_all():
     es.clear_scroll(scroll_id=sid)
 
 
-def search_by_vector(query_vector, top_n=10):
+def search_by_vector(query_vector,root_value, top_n=3):
     query = {
         "size": top_n,
         "query": {
-            "script_score": {
-                "query": {
-                    "match_all": {}
-                },
-                "script": {
-                    "source": "(cosineSimilarity(params.query_vector, 'vector') + 1.0) / 2",
-                    "params": {
-                        "query_vector": query_vector
+            "bool": {
+                "must": [
+                    {
+                        "term": {
+                            "root.keyword": root_value
+                        }
+                    },
+                    {
+                        "script_score": {
+                            "query": {
+                                "match_all": {}
+                            },
+                            "script": {
+                                "source": "(cosineSimilarity(params.query_vector, 'vector') + 1.0) / 2",
+                                "params": {
+                                    "query_vector": query_vector
+                                }
+                            }
+                        }
                     }
-                }
+                ]
             }
         }
     }
