@@ -64,19 +64,3 @@ class CustomMarkdownSplitter:
         documents.append(doc)
 
 
-# # 示例Markdown文本
-# markdown_text = """
-# # 标题
-#
-# 这是一个段落。
-#
-# absfewfrwefewf
-# 这是另一个段落。
-# """
-#
-# splitter = CustomMarkdownSplitter(markdown_text)
-# documents = splitter.split(tb_pre=0, tb_after=0, chunk_size=50, chunk_overlap=2)
-#
-# for doc in documents:
-#     print(doc)
-#     print("=" * 20)

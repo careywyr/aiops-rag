@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 import html2text
 from pojo import DataModel
-import es
+# import es
 import copy
 from utils.splitter import CustomMarkdownSplitter
 import consts
@@ -98,9 +98,6 @@ def read_file(root_path, root_name):
     print(f'要处理的文件数量: {len(data_models)}')
     loop = 1
     for data_model in data_models:
-        if loop < 2855:
-            loop +=1
-            continue
         print(
             f'loop: {loop}, root: {data_model.root}, name: {data_model.name}, url: {data_model.url}, Doctype: {data_model.doctype}, Catalogs: {data_model.catalogs}')
         # 按照url去读取文件
@@ -122,7 +119,7 @@ def read_file(root_path, root_name):
         for doc in docs:
             save_data = copy.deepcopy(data_model)
             save_data.content = doc
-            es.store([save_data])
+            # es.store([save_data])
         loop += 1
 
 
@@ -137,6 +134,26 @@ def read_file(root_path, root_name):
 # print('============ rcp end ============')
 
 
-read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
-print('============ umac end ============')
+# read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
+# print('============ umac end ============')
 
+def test(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+    except UnicodeDecodeError:
+        with open(path, 'r', encoding='gb2312') as f:
+            html_content = f.read()
+        # 解析HTML内容
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    body = soup.find('body')
+    content = html_to_markdown(str(body))
+    splitter = CustomMarkdownSplitter(content)
+    docs = splitter.split(tb_pre=1, tb_after=1, chunk_size=512, chunk_overlap=64)
+    for doc in docs:
+        print(doc)
+        print('\n\n ================== \n\n ')
+
+
+test('D:\\Workspace\\aiops2024-challenge-dataset\\emsplus\\documents\\License功能\\topics\\d0e594.html')

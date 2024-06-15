@@ -117,7 +117,7 @@ def vectorize_all():
     es.clear_scroll(scroll_id=sid)
 
 
-def search_by_vector(query_vector,root_value, top_n=3):
+def search_by_vector(query_vector,root_value, top_n=10):
     query = {
         "size": top_n,
         "query": {
