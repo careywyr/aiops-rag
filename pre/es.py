@@ -5,7 +5,7 @@
 @author  : leafw
 """
 
-from .pojo import DataModel
+from pojo import DataModel
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 from api import embedding
@@ -100,8 +100,11 @@ def vectorize_all():
         for hit in page['hits']['hits']:
             # 检查vector字段是否为空
             if 'vector' not in hit['_source'] or not hit['_source']['vector']:
-                print(f"处理第{a}条数据")
-                vector = embedding.embedding(hit['_source']['content'])
+                print(f"处理第{a}页数据")
+                # 把标题也给放进去，感觉可以增加向量化匹配的效果
+                titles = hit['_source']['titles']
+                title_string = ','.join([str(item) for item in titles if item is not None])
+                vector = embedding.embedding(title_string + ' ' + hit['_source']['content'])
                 # 更新vector字段
                 es.update(
                     index=index_name,
@@ -156,7 +159,9 @@ def search_by_vector(query_vector,root_value, top_n=10):
     return response
 
 
-# question = 'PCF与NRF对接时，一般需要配置哪些数据？'
+question = 'PCF与NRF对接时，一般需要配置哪些数据？'
 # query_vector = embedding.embedding(question)
-# r = search_by_vector(query_vector)
-# print(r)
+r = search_by_content(question)
+print(r)
+
+# vectorize_all()
