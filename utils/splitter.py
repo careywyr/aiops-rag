@@ -15,8 +15,8 @@ def split_markdown(text):
     :return: contents[ {page_content: 'xxx', metadata:{'h1': '工作流应用开发指南', 'h2': '1 工作流应用创建'}} ]
     """
     headers_to_split_on = [
-        ("#", "h1"),
-        ("##", "h2"),
+        ("#", "Header 1"),
+        ("##", "Header 2"),
     ]
 
     markdown_splitter = MarkdownHeaderTextSplitter(

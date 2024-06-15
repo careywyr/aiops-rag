@@ -142,17 +142,18 @@ def read_file(root_path, root_name):
 def run():
     # read_file(consts.HTML_ROOT_EMSPLUS[0], consts.HTML_ROOT_EMSPLUS[1])
     # print('============ emsplus end ============')
-
+    #
     # read_file(consts.HTML_ROOT_DIRECTOR[0], consts.HTML_ROOT_DIRECTOR[1])
     # print('============ director end ============')
 
     # 这里面有表格一行数据就超过512了，把chunk_size调大一下
     # 8288 有问题，主要是因为splitter对于长表格处理问题，改进就行嘞
-    read_file(consts.HTML_ROOT_RCP[0], consts.HTML_ROOT_RCP[1])
-    print('============ rcp end ============')
+    # read_file(consts.HTML_ROOT_RCP[0], consts.HTML_ROOT_RCP[1])
+    # print('============ rcp end ============')
 
 
-    # read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
-    # print('============ umac end ============')
+    read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
+    print('============ umac end ============')
 
 run()
+

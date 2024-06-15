@@ -15,6 +15,7 @@ import time
 es = Elasticsearch("http://192.168.0.103:9200")
 
 # index_name = 'aiops'
+# 改进html转Markdown的拆分策略后的库
 index_name = 'aiops_v2'
 
 
