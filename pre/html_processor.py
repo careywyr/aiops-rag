@@ -11,6 +11,8 @@ from pojo import DataModel
 # import es
 import copy
 from utils.splitter import CustomMarkdownSplitter
+import utils.splitter as splitter
+from pprint import pprint
 import consts
 
 
@@ -27,7 +29,8 @@ def parse_node(node, catalogs, root_name):
     url = url.replace('\\', '/')
     doctype = node.attrib.get('doctype')
     if len(node) == 0:
-        item = DataModel(root=root_name, name=name, content='', url=url, doctype=doctype, catalogs=catalogs, keywords=catalogs,
+        item = DataModel(root=root_name, name=name, content='', url=url, doctype=doctype, catalogs=catalogs,
+                         keywords=catalogs,
                          vector=[])
         return [item]
     else:
@@ -46,8 +49,26 @@ def parse_xml(nodetree_xml_path, root_name):
     return data
 
 
-def html_to_markdown(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
+def html_to_markdown(dst_url):
+    try:
+        with open(dst_url, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+    except UnicodeDecodeError:
+        with open(dst_url, 'r', encoding='gb2312') as f:
+            html_content = f.read()
+    # 解析HTML内容
+    soup_root = BeautifulSoup(html_content, 'html.parser')
+
+    body = soup_root.find('body')
+
+    soup = BeautifulSoup(str(body), 'html.parser')
+
+    # 根据class属性修改HTML结构
+    for element in soup.find_all(class_=["title", "topictitle"]):
+        if "topictitle" in element.get("class", []):
+            element.name = "h1"  # 将class为title的标签转换为<h1>
+        elif "title" in element.get("class", []):
+            element.name = "h2"  # 将class为topictitle的标签转换为<h1>
 
     # 处理表格部分
     markdown_tables = {}
@@ -103,57 +124,35 @@ def read_file(root_path, root_name):
         # 按照url去读取文件
         dst_url = root_path + '/documents/' + data_model.url
 
-        try:
-            with open(dst_url, 'r', encoding='utf-8') as f:
-                html_content = f.read()
-        except UnicodeDecodeError:
-            with open(dst_url, 'r', encoding='gb2312') as f:
-                html_content = f.read()
-        # 解析HTML内容
-        soup = BeautifulSoup(html_content, 'html.parser')
+        content = html_to_markdown(dst_url)
+        docs = splitter.split_markdown(content)
 
-        body = soup.find('body')
-        content = html_to_markdown(str(body))
-        splitter = CustomMarkdownSplitter(content)
-        docs = splitter.split(tb_pre=1, tb_after=1, chunk_size=512, chunk_overlap=64)
+        seg_index = 0
         for doc in docs:
             save_data = copy.deepcopy(data_model)
-            save_data.content = doc
+            save_data.content = doc.get('content')
+            save_data.titles = [doc.get('h1'), doc.get('h2')]
+            save_data.parent = doc.get('h2') if doc.get('h2') else doc.get('h1')
+            save_data.seg_index = seg_index
+            seg_index += 1
             # es.store([save_data])
         loop += 1
 
 
-# read_file(consts.HTML_ROOT_EMSPLUS[0], consts.HTML_ROOT_EMSPLUS[1])
-# print('============ emsplus end ============')
-# read_file(consts.HTML_ROOT_DIRECTOR[0], consts.HTML_ROOT_DIRECTOR[1])
-# print('============ director end ============')
+def run():
+    # read_file(consts.HTML_ROOT_EMSPLUS[0], consts.HTML_ROOT_EMSPLUS[1])
+    # print('============ emsplus end ============')
 
-# 这里面有表格一行数据就超过512了，把chunk_size调大一下
-# 8288 有问题，主要是因为splitter对于长表格处理问题，改进就行嘞
-# read_file(consts.HTML_ROOT_RCP[0], consts.HTML_ROOT_RCP[1])
-# print('============ rcp end ============')
+    # read_file(consts.HTML_ROOT_DIRECTOR[0], consts.HTML_ROOT_DIRECTOR[1])
+    # print('============ director end ============')
 
-
-# read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
-# print('============ umac end ============')
-
-def test(path):
-    try:
-        with open(path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-    except UnicodeDecodeError:
-        with open(path, 'r', encoding='gb2312') as f:
-            html_content = f.read()
-        # 解析HTML内容
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    body = soup.find('body')
-    content = html_to_markdown(str(body))
-    splitter = CustomMarkdownSplitter(content)
-    docs = splitter.split(tb_pre=1, tb_after=1, chunk_size=512, chunk_overlap=64)
-    for doc in docs:
-        print(doc)
-        print('\n\n ================== \n\n ')
+    # 这里面有表格一行数据就超过512了，把chunk_size调大一下
+    # 8288 有问题，主要是因为splitter对于长表格处理问题，改进就行嘞
+    read_file(consts.HTML_ROOT_RCP[0], consts.HTML_ROOT_RCP[1])
+    print('============ rcp end ============')
 
 
-test('D:\\Workspace\\aiops2024-challenge-dataset\\emsplus\\documents\\License功能\\topics\\d0e594.html')
+    # read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
+    # print('============ umac end ============')
+
+run()

@@ -5,6 +5,102 @@
 @author  : leafw
 """
 import re
+from langchain.text_splitter import MarkdownHeaderTextSplitter
+
+
+def split_markdown(text):
+    """
+    根据标题拆分
+    :param text: text
+    :return: contents[ {page_content: 'xxx', metadata:{'h1': '工作流应用开发指南', 'h2': '1 工作流应用创建'}} ]
+    """
+    headers_to_split_on = [
+        ("#", "h1"),
+        ("##", "h2"),
+    ]
+
+    markdown_splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=headers_to_split_on)
+    contents = markdown_splitter.split_text(text)
+    results = []
+    # 针对切分后的每个段落做额外处理
+    for content in contents:
+        paragraphs = paragraph_split(content.page_content)
+        h1 = content.metadata.get('Header 1')
+        h2 = content.metadata.get('Header 2')
+        for paragraph in paragraphs:
+            item = {'content': paragraph, 'h1': h1, 'h2': h2}
+            results.append(item)
+    return results
+
+
+def paragraph_split(page_content, max_length=512):
+    """
+    段落处理
+    :param page_content: 段落
+    :param max_length: 段落最大值
+    :return:
+    """
+    # 如果内容长度小于512，直接返回
+    if len(page_content) <= max_length:
+        return [page_content]
+
+    # 查找所有表格
+    table_pattern = re.compile(r'(\|.*\|(?:\n\|.*\|)+)')
+    tables = table_pattern.findall(page_content)
+
+    # 替换表格为占位符
+    placeholder = "<TABLE_PLACEHOLDER>"
+    content_without_tables = table_pattern.sub(placeholder, page_content)
+
+    # 按长度拆分段落
+    paragraphs = []
+    current_paragraph = ""
+    for line in content_without_tables.splitlines(keepends=True):
+        if len(current_paragraph) + len(line) > max_length:
+            paragraphs.append(current_paragraph)
+            current_paragraph = ""
+        current_paragraph += line
+    if current_paragraph:
+        paragraphs.append(current_paragraph)
+
+    # 恢复表格占位符
+    result_paragraphs = []
+    table_index = 0
+    for paragraph in paragraphs:
+        if placeholder in paragraph:
+            table = tables[table_index]
+            table_index += 1
+            # 如果表格大于max_length，拆分表格
+            if len(table) > max_length:
+                split_tables = split_large_table(table, max_length)
+                result_paragraphs.extend(split_tables)
+            else:
+                result_paragraphs.append(paragraph.replace(placeholder, table))
+        else:
+            result_paragraphs.append(paragraph)
+
+    return result_paragraphs
+
+
+def split_large_table(table, max_length):
+    # 拆分大的表格为多个小表格
+    lines = table.splitlines()
+    header = lines[0]
+    split_tables = []
+    current_table = header + "\n"
+
+    for line in lines[1:]:
+        if len(current_table) + len(line) + 1 > max_length:
+            split_tables.append(current_table.strip())
+            current_table = header + "\n"
+        current_table += line + "\n"
+
+    if current_table.strip():
+        split_tables.append(current_table.strip())
+
+    return split_tables
+
 
 
 class CustomMarkdownSplitter:
@@ -62,5 +158,4 @@ class CustomMarkdownSplitter:
             documents.append(doc[:split_point].strip())
             doc = doc[overlap_start:].strip()
         documents.append(doc)
-
 

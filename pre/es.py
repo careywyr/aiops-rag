@@ -14,7 +14,8 @@ import time
 # es = Elasticsearch([{'host': '192.168.0.103', 'port': 9200}])
 es = Elasticsearch("http://192.168.0.103:9200")
 
-index_name = 'aiops'
+# index_name = 'aiops'
+index_name = 'aiops_v2'
 
 
 def store(data_models: [DataModel]):
@@ -28,8 +29,12 @@ def store(data_models: [DataModel]):
             'doctype': data_model.doctype,
             'catalogs': data_model.catalogs,
             'keywords': data_model.keywords,
-            'vector': data_model.vector
+            'vector': data_model.vector,
+            'titles': data_model.titles,
+            'parent': data_model.parent,
+            'seg_index': data_model.seg_index
         }
+
         es.index(index=index_name, body=doc)
 
 
