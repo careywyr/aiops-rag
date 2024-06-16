@@ -4,22 +4,25 @@
 @date    : 2024-06-13
 @author  : leafw
 """
-from pre import es
-from api import embedding
-from agent import final_answer
+
+from agent import generator, retrieval
 import jsonlines
 
 
 questions = './dataset/question.jsonl'
-outputs = './dataset/second.jsonl'
+outputs = './dataset/sixth.jsonl'
 
 
 def run(query, document):
-    vec = embedding.embedding(query)
-    kg = es.search_by_vector(vec, document)
-    contents = [hit['_source']['content'] for hit in kg['hits']['hits']]
-    background = "\n\n".join(contents)
-    answer = final_answer.answer(background, query)
+    contents = retrieval.retrieve(query, document)
+    real_related_contents = []
+    for content in contents:
+        # relation = generator.check_relation(content, query)
+        # if relation == '否':
+        #     continue
+        real_related_contents.append(content)
+    background = "\n====================\n".join(real_related_contents)
+    answer = generator.answer(background, query)
     print(answer)
     return answer, background
 
@@ -43,3 +46,6 @@ def process_jsonl(input_file, output_file):
 
 
 process_jsonl(questions, outputs)
+# a,b=run('Director支持在华为云虚机上部署吗？', 'director')
+# print(a)
+# print(b)

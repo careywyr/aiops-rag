@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 import html2text
 from pojo import DataModel
-# import es
+import es
 import copy
 from utils.splitter import CustomMarkdownSplitter
 import utils.splitter as splitter
@@ -135,11 +135,12 @@ def read_file(root_path, root_name):
             save_data.parent = doc.get('h2') if doc.get('h2') else doc.get('h1')
             save_data.seg_index = seg_index
             seg_index += 1
-            # es.store([save_data])
+            es.store([save_data])
         loop += 1
 
 
 def run():
+    pass
     # read_file(consts.HTML_ROOT_EMSPLUS[0], consts.HTML_ROOT_EMSPLUS[1])
     # print('============ emsplus end ============')
     #
@@ -152,8 +153,8 @@ def run():
     # print('============ rcp end ============')
 
 
-    read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
-    print('============ umac end ============')
-
-run()
+#     read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
+#     print('============ umac end ============')
+#
+# run()
 

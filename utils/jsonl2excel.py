@@ -2,7 +2,7 @@ import pandas as pd
 import json
 
 # 读取 jsonl 文件
-file_path = 'D:\\Workspace\\aiops-rag\\dataset\\third_all.jsonl'
+file_path = 'D:\\Workspace\\aiops-rag\\dataset\\fourth_hotfix.jsonl'
 
 data = []
 with open(file_path, 'r', encoding='utf-8') as f:

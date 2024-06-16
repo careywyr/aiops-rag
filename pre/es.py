@@ -5,7 +5,7 @@
 @author  : leafw
 """
 
-from pojo import DataModel
+from pre.pojo import DataModel
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 from api import embedding
@@ -99,22 +99,19 @@ def vectorize_all():
     while scroll_size > 0:
         for hit in page['hits']['hits']:
             # 检查vector字段是否为空
-            if 'vector' not in hit['_source'] or not hit['_source']['vector']:
-                print(f"处理第{a}页数据")
-                # 把标题也给放进去，感觉可以增加向量化匹配的效果
-                titles = hit['_source']['titles']
-                title_string = ','.join([str(item) for item in titles if item is not None])
-                vector = embedding.embedding(title_string + ' ' + hit['_source']['content'])
-                # 更新vector字段
-                es.update(
-                    index=index_name,
-                    id=hit['_id'],
-                    body={
-                        "doc": {
-                            "vector": vector
-                        }
+            # if 'vector' not in hit['_source'] or not hit['_source']['vector']:
+            print(f"处理第{a}页数据")
+            vector = embedding.embedding(hit['_source']['content'])
+            # 更新vector字段
+            es.update(
+                index=index_name,
+                id=hit['_id'],
+                body={
+                    "doc": {
+                        "vector": vector
                     }
-                )
+                }
+            )
 
         # 获取下一批数据
         page = es.scroll(scroll_id=sid, scroll='2m')
@@ -126,17 +123,12 @@ def vectorize_all():
     es.clear_scroll(scroll_id=sid)
 
 
-def search_by_vector(query_vector,root_value, top_n=10):
+def search_by_vector(query_vector, root_value, top_n=10):
     query = {
         "size": top_n,
         "query": {
             "bool": {
                 "must": [
-                    {
-                        "term": {
-                            "root.keyword": root_value
-                        }
-                    },
                     {
                         "script_score": {
                             "query": {
@@ -150,6 +142,13 @@ def search_by_vector(query_vector,root_value, top_n=10):
                             }
                         }
                     }
+                ],
+                "filter": [
+                    {
+                        "term": {
+                            "root.keyword": root_value
+                        }
+                    }
                 ]
             }
         }
@@ -159,9 +158,38 @@ def search_by_vector(query_vector,root_value, top_n=10):
     return response
 
 
-question = 'PCF与NRF对接时，一般需要配置哪些数据？'
-# query_vector = embedding.embedding(question)
-r = search_by_content(question)
-print(r)
+def search_documents(url, parent, seg_index):
+    # 构建查询
+    query = {
+        "bool": {
+            "must": [
+                {"term": {"url.keyword": url}},
+                {"term": {"seg_index": seg_index}}
+            ]
+        }
+    }
+
+    # 如果parent不为None，则添加parent条件
+    if parent is not None:
+        query["bool"]["must"].append({"term": {"parent.keyword": parent}})
+
+    # 执行查询
+    response = es.search(index=index_name, body={"query": query})
+
+    # 返回查询结果
+    return response
+
+
+
+# mapping = es.indices.get_mapping(index=index_name)
+# print(mapping)
+
+
+# test()
+# question = 'PCF与NRF对接时，一般需要配置哪些数据？'
+# # query_vector = embedding.embedding(question)
+# r = search_by_content(question)
+# print(r)
+
 
 # vectorize_all()

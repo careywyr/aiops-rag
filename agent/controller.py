@@ -5,7 +5,7 @@
 @author  : leafw
 整体流程的控制器
 """
-import final_answer
+import generator
 import doc_finder
 
 
@@ -16,4 +16,4 @@ def answer(question: str) -> str:
     content = ''
 
     # 2. 将段落内容送到glm进行回答
-    return final_answer.answer(content, question)
+    return generator.answer(content, question)

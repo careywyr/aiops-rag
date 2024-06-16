@@ -36,3 +36,16 @@ def find_question(content: str, question: str):
         
         {question}
     """
+
+
+def check_relationship(question: str, content: str):
+    return f"""
+           我有一段关于运维的材料的文本，内容如下:
+
+           {content}
+
+           然后我现在需要回答一个问题如下：
+           {question}
+           
+           你觉得这段文本跟问题有关系么？如果有关系就返回是，没关系就返回否。不要返回多余的话语，返回是或否就行。
+       """
