@@ -11,5 +11,6 @@ def chat(message: str) -> str:
         messages=[
             {"role": "user", "content": message},
         ],
+        temperature=0.5
     )
     return response.choices[0].message.content

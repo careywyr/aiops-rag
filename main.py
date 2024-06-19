@@ -10,7 +10,7 @@ import jsonlines
 
 
 questions = './dataset/question.jsonl'
-outputs = './dataset/sixth.jsonl'
+outputs = './dataset/0617002.jsonl'
 
 
 def run(query, document):
@@ -45,7 +45,7 @@ def process_jsonl(input_file, output_file):
             count += 1
 
 
-process_jsonl(questions, outputs)
-# a,b=run('Director支持在华为云虚机上部署吗？', 'director')
-# print(a)
-# print(b)
+# process_jsonl(questions, outputs)
+a,b=run('N7会话的ResourceURI由哪个网元在哪个消息中生成', 'rcp')
+print(a)
+print(b)

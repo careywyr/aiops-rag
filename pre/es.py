@@ -39,30 +39,6 @@ def store(data_models: [DataModel]):
         es.index(index=index_name, body=doc)
 
 
-def search_by_content(query: str):
-    body = {
-        "query": {
-            "match": {
-                "content": query
-            }
-        }
-    }
-    response = es.search(index=index_name, body=body)
-    return response['hits']['hits']
-
-
-def search_by_name(query: str):
-    body = {
-        "query": {
-            "wildcard": {
-                "name": f"*{query}*"
-            }
-        }
-    }
-    response = es.search(index=index_name, body=body)
-    return response['hits']['hits']
-
-
 def delete_index():
     try:
         if es.indices.exists(index=index_name):
@@ -158,7 +134,28 @@ def search_by_vector(query_vector, root_value, top_n=10):
     return response
 
 
-def search_documents(url, parent, seg_index):
+def search_by_content(query: str, root_value, top_n=10):
+    body = {
+        "size": top_n,
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {"content": query}
+                    },
+                    {
+                        "term": {"root.keyword": root_value}
+                    }
+                ]
+            }
+
+        }
+    }
+    response = es.search(index=index_name, body=body)
+    return response
+
+
+def search_documents(url, seg_index):
     # 构建查询
     query = {
         "bool": {
@@ -170,8 +167,8 @@ def search_documents(url, parent, seg_index):
     }
 
     # 如果parent不为None，则添加parent条件
-    if parent is not None:
-        query["bool"]["must"].append({"term": {"parent.keyword": parent}})
+    # if parent is not None:
+    #     query["bool"]["must"].append({"term": {"parent.keyword": parent}})
 
     # 执行查询
     response = es.search(index=index_name, body={"query": query})
@@ -180,16 +177,7 @@ def search_documents(url, parent, seg_index):
     return response
 
 
-
-# mapping = es.indices.get_mapping(index=index_name)
-# print(mapping)
-
-
-# test()
-# question = 'PCF与NRF对接时，一般需要配置哪些数据？'
-# # query_vector = embedding.embedding(question)
-# r = search_by_content(question)
-# print(r)
-
-
 # vectorize_all()
+
+r = search_by_content('N7会话的ResourceURI由哪个网元在哪个消息中生成', 'rcp')
+print(r)

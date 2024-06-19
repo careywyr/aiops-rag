@@ -7,15 +7,39 @@
 """
 
 from pre import es
-from api import embedding
-import numpy as np
+from api import embedding, reranker
 
 
 def retrieve(query: str, document: str, top_n=10):
+    # 向量检索
     vec = embedding.embedding(query)
     kg = es.search_by_vector(vec, document, top_n=top_n)
     hits = kg['hits']['hits']
+
+    # 全文检索
+    # kg_text = es.search_by_content(query, document, top_n)
+    # hits_text = kg_text['hits']['hits']
+
     # 找到对应的上下文
+    combines = hits_wrapper(hits)
+    # combines_text = hits_wrapper(hits_text)
+    # combines.extend(combines_text)
+
+    # 合并重复段落
+    distinct_results = merge_combinations(combines)
+    distinct_contents = ["\n".join(item['content'] for item in sublist) for sublist in distinct_results]
+    # sorted_contents = reranker.sort(query, distinct_contents)
+    # if len(sorted_contents) > 5:
+    #     sorted_contents = sorted_contents[:5]
+    return distinct_contents
+
+
+def hits_wrapper(hits):
+    """
+    把上下文也带上
+    :param hits:
+    :return:
+    """
     combines = []
     for hit in hits:
         _id = hit['_id']
@@ -35,7 +59,7 @@ def retrieve(query: str, document: str, top_n=10):
 
         context = []
         for index in query_index:
-            results = es.search_documents(url, parent, index)
+            results = es.search_documents(url, index)
             # 相邻结果
             if len(results['hits']['hits']) == 0:
                 continue
@@ -58,10 +82,7 @@ def retrieve(query: str, document: str, top_n=10):
             combines.append(combine)
         else:
             combines.append([current_hit])
-    # 合并重复段落
-    distinct_results = merge_combinations(combines)
-    distinct_contents = ["\n".join(item['content'] for item in sublist) for sublist in distinct_results]
-    return distinct_contents
+    return combines
 
 
 def merge_combinations(combines):
