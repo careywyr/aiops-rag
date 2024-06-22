@@ -6,8 +6,8 @@
 
 """
 
-from pre import es
-from api import embedding, reranker, deepseek
+from db import es
+from api import embedding, reranker
 
 
 def retrieve(query: str, document: str, top_n=10):
@@ -32,8 +32,8 @@ def retrieve(query: str, document: str, top_n=10):
     distinct_results = merge_combinations(combines)
     distinct_contents = ["\n".join(item['content'] for item in sublist) for sublist in distinct_results]
     sorted_contents = reranker.sort(query, distinct_contents)
-    if len(sorted_contents) > 5:
-        sorted_contents = sorted_contents[:5]
+    # if len(sorted_contents) > 5:
+    #     sorted_contents = sorted_contents[:5]
     return sorted_contents
 
 

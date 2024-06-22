@@ -31,3 +31,11 @@ class DataModel:
         # 在这个标题下的段落序号
         self.seg_index = seg_index
 
+
+class GraphExtract:
+    def __init__(self, head: str, head_type: str, relation: str, tail: str, tail_type: str):
+        self.head = head
+        self.head_type = head_type
+        self.relation = relation
+        self.tail = tail
+        self.tail_type = tail_type

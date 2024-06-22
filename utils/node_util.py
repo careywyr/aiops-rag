@@ -91,8 +91,8 @@ def display_tree(node, level=0):
         display_tree(child, level + 1)
 
 
-if __name__ == "__main__":
-    nodes = parse_xml("/Users/carey/Documents/workspace2024/aiops-rag/data/nodetree.xml")
-    for node in nodes:
-        # display_tree(node)
-        print(node.name, node.id, node.doctype, node.url)
+# if __name__ == "__main__":
+#     nodes = parse_xml("D:\\Workspace\\aiops2024-challenge-dataset\\director\\nodetree.xml")
+#     for node in nodes:
+#         display_tree(node)
+#         print(node.name, node.id, node.doctype, node.url)

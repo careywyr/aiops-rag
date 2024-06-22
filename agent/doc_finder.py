@@ -11,18 +11,18 @@ log.html可以先忽略，里面是缩略词的词典，后面再想想怎么用
 四个分类的nodetree可能很大，一次性塞不进去，那么可以一层层的问
 """
 from utils import node_util, prompt_template
-from api import deepseek
+from api import deepseek, glm
 
 
 def answer_node(node: node_util.Node, question: str, docs: [str]):
     # 为了避免内容太长了，只保留name和children
     node_json = node.to_simple_dict()
     prompt = prompt_template.find_doc(node_json, question)
-    if len(prompt) > 32000:
+    if len(prompt) > 3000:
         for child in node.children:
             answer_node(child, question, docs)
     else:
-        doc = deepseek.chat(prompt)
+        doc = glm.chat(prompt)
         print(doc)
         if doc != '无关':
             docs.append(doc)
@@ -44,7 +44,7 @@ class DocFinder:
         return answer_docs
 
 
-if __name__ == '__main__':
-    doc_finder = DocFinder('/Users/carey/Documents/workspace2024/aiops2024-challenge-dataset/zedxzip/director')
-    docs = doc_finder.finder('怎么获取通讯支持?')
-    print(docs)
+# if __name__ == '__main__':
+#     doc_finder = DocFinder('D:\\Workspace\\aiops2024-challenge-dataset\\director')
+#     docs = doc_finder.finder('Director接收南向告警的snmp端口号是多少?')
+#     print(docs)

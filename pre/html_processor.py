@@ -7,12 +7,10 @@
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 import html2text
-from pojo import DataModel
-import es
+from pre.pojo import DataModel
+import db.es as es
 import copy
 import utils.splitter as splitter
-from pprint import pprint
-import consts
 
 
 def parse_node(node, catalogs, root_name):
