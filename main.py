@@ -10,24 +10,18 @@ import jsonlines
 
 
 questions = './dataset/question.jsonl'
-outputs = './dataset/0617002.jsonl'
+outputs = './dataset/0622/emsplus1.jsonl'
 
 
 def run(query, document):
     contents = retrieval.retrieve(query, document)
-    real_related_contents = []
-    for content in contents:
-        # relation = generator.check_relation(content, query)
-        # if relation == '否':
-        #     continue
-        real_related_contents.append(content)
-    background = "\n====================\n".join(real_related_contents)
+    background = "\n====================\n".join(contents)
     answer = generator.answer(background, query)
     print(answer)
     return answer, background
 
 
-def process_jsonl(input_file, output_file):
+def run_all(input_file, output_file):
     with jsonlines.open(input_file) as reader, jsonlines.open(output_file, mode='w') as writer:
         count = 1
         for obj in reader:
@@ -39,13 +33,12 @@ def process_jsonl(input_file, output_file):
                 "id": obj['id'],
                 "query": query,
                 "document": document,
-                "answer": answer
+                "answer": answer,
+                "background": background
             }
             writer.write(result)
             count += 1
 
 
-# process_jsonl(questions, outputs)
-a,b=run('N7会话的ResourceURI由哪个网元在哪个消息中生成', 'rcp')
-print(a)
-print(b)
+run_all(questions, outputs)
+

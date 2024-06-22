@@ -10,7 +10,6 @@ import html2text
 from pojo import DataModel
 import es
 import copy
-from utils.splitter import CustomMarkdownSplitter
 import utils.splitter as splitter
 from pprint import pprint
 import consts

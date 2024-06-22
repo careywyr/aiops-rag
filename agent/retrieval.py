@@ -7,7 +7,7 @@
 """
 
 from pre import es
-from api import embedding, reranker
+from api import embedding, reranker, deepseek
 
 
 def retrieve(query: str, document: str, top_n=10):
@@ -16,22 +16,25 @@ def retrieve(query: str, document: str, top_n=10):
     kg = es.search_by_vector(vec, document, top_n=top_n)
     hits = kg['hits']['hits']
 
+    # keywords = deepseek.extract_keywords(query)
+    # kg_by_kw = es.search_by_root_and_keywords(document, keywords)['hits']['hits']
+
     # 全文检索
     # kg_text = es.search_by_content(query, document, top_n)
     # hits_text = kg_text['hits']['hits']
 
     # 找到对应的上下文
     combines = hits_wrapper(hits)
-    # combines_text = hits_wrapper(hits_text)
+    # combines_text = hits_wrapper(kg_by_kw)
     # combines.extend(combines_text)
 
     # 合并重复段落
     distinct_results = merge_combinations(combines)
     distinct_contents = ["\n".join(item['content'] for item in sublist) for sublist in distinct_results]
-    # sorted_contents = reranker.sort(query, distinct_contents)
-    # if len(sorted_contents) > 5:
-    #     sorted_contents = sorted_contents[:5]
-    return distinct_contents
+    sorted_contents = reranker.sort(query, distinct_contents)
+    if len(sorted_contents) > 5:
+        sorted_contents = sorted_contents[:5]
+    return sorted_contents
 
 
 def hits_wrapper(hits):
@@ -44,13 +47,10 @@ def hits_wrapper(hits):
     for hit in hits:
         _id = hit['_id']
         source = hit['_source']
-        score = hit['_score']
         url = source['url']
         hit_content = source['content']
         seg_index = source['seg_index']
-        parent = source['parent']
         current_hit = {'id': _id, 'content': hit_content}
-        # print(f'{url}, {score}, {hit_content}')
 
         if seg_index == 0:
             query_index = [1]
@@ -95,7 +95,6 @@ def merge_combinations(combines):
     merged_combinations = []
 
     for combination in combines:
-        current_combination = []
         for item in combination:
             existing_combination = find_combination_with_id(merged_combinations, item['id'])
             if existing_combination:
@@ -108,7 +107,5 @@ def merge_combinations(combines):
 
     return merged_combinations
 
-#
-# result = retrieve('Director支持在华为云虚机上部署吗？', 'director')
-# print(result)
+
 

@@ -8,8 +8,7 @@
 from pre.pojo import DataModel
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
-from api import embedding
-import time
+from api import embedding, deepseek
 
 # es = Elasticsearch([{'host': '192.168.0.103', 'port': 9200}])
 es = Elasticsearch("http://192.168.0.103:9200")
@@ -99,6 +98,85 @@ def vectorize_all():
     es.clear_scroll(scroll_id=sid)
 
 
+def search_by_root_and_keywords(root, keywords):
+    query = {
+        "bool": {
+            "must": [
+                {
+                    "term": {
+                        "root.keyword": root  # 使用keyword类型进行精确匹配
+                    }
+                }
+            ],
+            "filter": [
+                {
+                    "terms": {
+                        "keywords.keyword": keywords  # 使用terms查询进行交集匹配
+                    }
+                }
+            ]
+        }
+    }
+
+    response = es.search(
+        index=index_name,
+        body={
+            "query": query
+        }
+    )
+
+    return response
+
+
+def keywords_extract_all(root_value):
+    count_result = es.count(index=index_name, body={"query": {"match": {"root": root_value}}})
+    print("Document count in index '{}': {}".format(index_name, count_result['count']))
+
+    page = es.search(
+        index=index_name,
+        scroll='20m',
+        body={
+            "size": 1000,
+            "query": {
+                "match": {
+                    "root": root_value
+                }
+            }
+        }
+    )
+
+    sid = page['_scroll_id']
+    scroll_size = page['hits']['total']['value']
+    a = 1
+
+    while scroll_size > 0:
+        for hit in page['hits']['hits']:
+            print(f"处理第{a}页数据")
+            existing_keywords = hit['_source'].get('keywords', [])
+            if len(existing_keywords) <= 3:
+                new_keywords = deepseek.extract_keywords(hit['_source']['content'])
+                all_keywords = list(set(existing_keywords + new_keywords))
+                try:
+                    es.update(
+                        index=index_name,
+                        id=hit['_id'],
+                        body={
+                            "doc": {
+                                "keywords": all_keywords
+                            }
+                        }
+                    )
+                except NotFoundError:
+                    print(f"ID为{hit['_id']}的数据不存在，无法更新。")
+
+        page = es.scroll(scroll_id=sid, scroll='20m')
+        sid = page['_scroll_id']
+        scroll_size = len(page['hits']['hits'])
+        a += 1
+
+    es.clear_scroll(scroll_id=sid)
+
+
 def search_by_vector(query_vector, root_value, top_n=10):
     query = {
         "size": top_n,
@@ -166,10 +244,6 @@ def search_documents(url, seg_index):
         }
     }
 
-    # 如果parent不为None，则添加parent条件
-    # if parent is not None:
-    #     query["bool"]["must"].append({"term": {"parent.keyword": parent}})
-
     # 执行查询
     response = es.search(index=index_name, body={"query": query})
 
@@ -177,7 +251,24 @@ def search_documents(url, seg_index):
     return response
 
 
-# vectorize_all()
+def search_by_json(query: str):
+    # 执行查询
+    response = es.search(index=index_name, body=query)
+    print(response)
+    # 返回查询结果
+    return response
 
-r = search_by_content('N7会话的ResourceURI由哪个网元在哪个消息中生成', 'rcp')
-print(r)
+
+# # vectorize_all()
+# keywords_extract_all('director')
+# keywords_extract_all('rcp')
+
+# r = search_by_content('N7会话的ResourceURI由哪个网元在哪个消息中生成', 'rcp')
+# print(r)
+
+# query = {
+#     "query": {
+#         "term": {"_id": 24890}
+#     }
+# }
+# search_by_json(query)
