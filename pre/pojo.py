@@ -4,6 +4,7 @@
 @date    : 2024-06-02
 @author  : leafw
 """
+import json
 
 
 class DataModel:
@@ -39,3 +40,23 @@ class GraphExtract:
         self.relation = relation
         self.tail = tail
         self.tail_type = tail_type
+
+    def to_json(self):
+        return json.dumps({
+            "head": self.head,
+            "head_type": self.head_type,
+            "relation": self.relation,
+            "tail": self.tail,
+            "tail_type": self.tail_type
+        }, ensure_ascii=False)
+
+    def to_dict(self):
+        return {
+            "head": self.head,
+            "head_type": self.head_type,
+            "relation": self.relation,
+            "tail": self.tail,
+            "tail_type": self.tail_type
+        }
+
+

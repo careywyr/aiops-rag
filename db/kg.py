@@ -4,7 +4,6 @@
 @date    : 2024-05-26
 @author  : leafw
 """
-import threading
 from pre.pojo import GraphExtract
 from py2neo import Graph, Node, Relationship
 

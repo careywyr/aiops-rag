@@ -29,7 +29,10 @@ def extract_keywords(text: str):
 
 def extract_knowledge_graph(text: str) -> [GraphExtract]:
     output = chat(text, prompt_template.extract_kg_prompt)
+    if '```json' in output:
+        output = output.replace('```json', '').replace('```', '')
+    print(output)
     data = json.loads(output)
-    return [GraphExtract(d['head'], d['head_type'], d['relation'], d['tail'], d['tail_type']) for d in data]
+    return [GraphExtract(d.get('head'), d.get('head_type'), d.get('relation'), d.get('tail'), d.get('tail_type')) for d in data]
 
 

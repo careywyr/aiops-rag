@@ -8,9 +8,10 @@ import re
 from langchain.text_splitter import MarkdownHeaderTextSplitter
 
 
-def split_markdown(text):
+def split_markdown(text, max_length=512):
     """
     根据标题拆分
+    :param max_length: max_length
     :param text: text
     :return: contents[ {page_content: 'xxx', metadata:{'h1': '工作流应用开发指南', 'h2': '1 工作流应用创建'}} ]
     """
@@ -25,7 +26,7 @@ def split_markdown(text):
     results = []
     # 针对切分后的每个段落做额外处理
     for content in contents:
-        paragraphs = paragraph_split(content.page_content)
+        paragraphs = paragraph_split(content.page_content, max_length)
         h1 = content.metadata.get('Header 1')
         h2 = content.metadata.get('Header 2')
         for paragraph in paragraphs:
