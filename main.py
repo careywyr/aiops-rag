@@ -5,12 +5,12 @@
 @author  : leafw
 """
 
-from agent import generator, retrieval
+from agent import generator, retrieval, query_opt
 import jsonlines
 
 
 questions = './dataset/question.jsonl'
-outputs = './dataset/0622/emsplus1.jsonl'
+outputs = './dataset/0629/2.jsonl'
 
 
 def run(query, document):
@@ -33,12 +33,14 @@ def run_all(input_file, output_file):
                 "id": obj['id'],
                 "query": query,
                 "document": document,
-                "answer": answer,
-                "background": background
+                "answer": answer
             }
             writer.write(result)
             count += 1
 
 
 run_all(questions, outputs)
-
+# answer, background = run('PCF与NRF对接时，一般需要配置哪些数据？', 'rcp')
+# print(answer)
+# print('\n--------------------------------------------------------------------------------\n')
+# print(background)

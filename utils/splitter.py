@@ -29,7 +29,10 @@ def split_markdown(text, max_length=512):
         paragraphs = paragraph_split(content.page_content, max_length)
         h1 = content.metadata.get('Header 1')
         h2 = content.metadata.get('Header 2')
+        a = ('# ' + h1 + '\n') if h1 is not None else ''
+        b = ('## ' + h2 + '\n') if h2 is not None else ''
         for paragraph in paragraphs:
+            paragraph = a + b + paragraph
             item = {'content': paragraph, 'h1': h1, 'h2': h2}
             results.append(item)
     return results
@@ -103,7 +106,6 @@ def split_large_table(table, max_length):
     return split_tables
 
 
-
 class CustomMarkdownSplitter:
     def __init__(self, text):
         self.text = text
@@ -159,4 +161,3 @@ class CustomMarkdownSplitter:
             documents.append(doc[:split_point].strip())
             doc = doc[overlap_start:].strip()
         documents.append(doc)
-

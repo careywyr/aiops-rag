@@ -7,41 +7,109 @@
 """
 
 from db import es
-from api import embedding, reranker
+from api import embedding, reranker, glm
+from agent import query_opt
 
 
-def retrieve(query: str, document: str, top_n=10):
-    # 向量检索
+def vector_search(query: str, document: str, top_n=10) -> [str]:
+    """
+    纯向量检索
+    :param query:
+    :param document:
+    :param top_n:
+    :return:
+    """
     vec = embedding.embedding(query)
     kg = es.search_by_vector(vec, document, top_n=top_n)
     hits = kg['hits']['hits']
-
-    # keywords = deepseek.extract_keywords(query)
-    # kg_by_kw = es.search_by_root_and_keywords(document, keywords)['hits']['hits']
-
-    # 全文检索
-    # kg_text = es.search_by_content(query, document, top_n)
-    # hits_text = kg_text['hits']['hits']
-
     # 找到对应的上下文
     combines = hits_wrapper(hits)
-    # combines_text = hits_wrapper(kg_by_kw)
-    # combines.extend(combines_text)
-
     # 合并重复段落
     distinct_results = merge_combinations(combines)
     distinct_contents = ["\n".join(item['content'] for item in sublist) for sublist in distinct_results]
-    sorted_contents = reranker.sort(query, distinct_contents)
-    # if len(sorted_contents) > 5:
-    #     sorted_contents = sorted_contents[:5]
-    return sorted_contents
+    return distinct_contents
+
+
+def keywords_search(keywords: [str], document: str, top_n=5) -> [str]:
+    """
+    纯关键词检索-本质上是关键词直接搜索，不是关键词匹配
+    :param keywords:
+    :param document:
+    :param top_n:
+    :return:
+    """
+    results = set()
+    for keyword in keywords:
+        kg = es.search_by_content(keyword, document, top_n=top_n)
+        hits = kg['hits']['hits']
+        contents = [item['_source'].get('content') for item in hits]
+        results.update(contents)
+    return results
+
+
+def rerank(query: str, contents: [str]):
+    return reranker.sort(query, contents)
+
+
+def retrieve_by_reflection(query: str, document: str, top_n=5):
+    contents = vector_search(query, document, top_n)
+    background = "\n====================\n".join(contents)
+    relation = glm.check_relation(query, background)
+    if relation == '是':
+        return contents
+    # 如果不能，再用其他方式召回
+    retrieve(query, document, top_n)
+
+
+def retrieve(query: str, document: str, top_n=5):
+    """
+    三种方式查询召回，显存不够试试拆开来排序
+    :param query:
+    :param document:
+    :param top_n:
+    :return:
+    """
+    # hyde搜索
+    hyde_content = query_opt.hyde(query)
+    hyde_resp = vector_search(hyde_content, document, top_n)
+    hyde_resp_scores = reranker.sort_include_score(query, hyde_resp)
+
+    # 子查询搜索
+    multi_query = query_opt.multi_query(query)
+    mult_query_resp = set()
+    for q in multi_query:
+        a = vector_search(q, document, top_n)
+        mult_query_resp.update(a)
+
+    mult_query_resp_scores = reranker.sort_include_score(query, mult_query_resp)
+
+    # 关键词搜索
+    keywords = query_opt.keywords_query(query)
+    keywords_resp = set()
+    for kw in keywords:
+        a = keywords_search(kw, document, top_n)
+        keywords_resp.update(a)
+
+    keywords_resp_scores = reranker.sort_include_score(query, keywords_resp)
+
+    all_result = set()
+    all_result.update(hyde_resp_scores)
+    all_result.update(mult_query_resp_scores)
+    all_result.update(keywords_resp_scores)
+    ranked = list(all_result)
+    # 按照分数从大到小排序
+    ranked.sort(key=lambda x: x[1], reverse=True)
+    if len(ranked) > 10:
+        ranked = ranked[:10]
+    results = [item[0] for item in ranked]
+    return results
 
 
 def hits_wrapper(hits):
     """
     把上下文也带上
     :param hits:
-    :return:
+    :return: 每个元素是一个数组，数组里包含了连续的段落
     """
     combines = []
     for hit in hits:
@@ -108,4 +176,14 @@ def merge_combinations(combines):
     return merged_combinations
 
 
+def filter_contents(query: str, contents: [str]):
+    filtered = []
+    for content in contents:
+        relation = glm.check_relation(query, content)
+        if relation == '是':
+            filtered.append(content)
+    return filtered
 
+# resp = retrieve('PCF与NRF对接时，一般需要配置哪些数据？', 'rcp')
+# r2 = rerank('PCF与NRF对接时，一般需要配置哪些数据？', resp)
+# print(r2)

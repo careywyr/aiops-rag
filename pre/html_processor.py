@@ -11,6 +11,7 @@ from pre.pojo import DataModel
 import db.es as es
 import copy
 import utils.splitter as splitter
+import pre.consts as consts
 
 
 def parse_node(node, catalogs, root_name):
@@ -122,8 +123,11 @@ def read_file(root_path, root_name):
         dst_url = root_path + '/documents/' + data_model.url
 
         content = html_to_markdown(dst_url)
-        docs = splitter.split_markdown(content)
-
+        # 只有超过1024大小的才分一下
+        if len(content) > 1024:
+            docs = [{'content': content}]
+        else:
+            docs = splitter.split_markdown(content, max_length=1024)
         seg_index = 0
         for doc in docs:
             save_data = copy.deepcopy(data_model)
@@ -137,21 +141,20 @@ def read_file(root_path, root_name):
 
 
 def run():
-    pass
-    # read_file(consts.HTML_ROOT_EMSPLUS[0], consts.HTML_ROOT_EMSPLUS[1])
-    # print('============ emsplus end ============')
-    #
-    # read_file(consts.HTML_ROOT_DIRECTOR[0], consts.HTML_ROOT_DIRECTOR[1])
-    # print('============ director end ============')
+    read_file(consts.HTML_ROOT_EMSPLUS[0], consts.HTML_ROOT_EMSPLUS[1])
+    print('============ emsplus end ============')
+    # #
+    read_file(consts.HTML_ROOT_DIRECTOR[0], consts.HTML_ROOT_DIRECTOR[1])
+    print('============ director end ============')
 
     # 这里面有表格一行数据就超过512了，把chunk_size调大一下
     # 8288 有问题，主要是因为splitter对于长表格处理问题，改进就行嘞
-    # read_file(consts.HTML_ROOT_RCP[0], consts.HTML_ROOT_RCP[1])
-    # print('============ rcp end ============')
+    read_file(consts.HTML_ROOT_RCP[0], consts.HTML_ROOT_RCP[1])
+    print('============ rcp end ============')
 
 
-#     read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
-#     print('============ umac end ============')
+    read_file(consts.HTML_ROOT_UMAC[0], consts.HTML_ROOT_UMAC[1])
+    print('============ umac end ============')
 #
 # run()
 

@@ -44,3 +44,12 @@ def amend_json(json_str: str):
     if '```json' in output:
         output = output.replace('```json', '').replace('```', '')
     return output
+
+
+def check_relation(query: str, background: str):
+    print(background)
+    resp = chat(prompt_template.check_relationship(query, background))
+    print(resp)
+    if '是' not in resp and '否' not in resp:
+        return '是'
+    return resp

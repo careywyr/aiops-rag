@@ -15,7 +15,9 @@ es = Elasticsearch("http://192.168.0.103:9200")
 
 # index_name = 'aiops'
 # 改进html转Markdown的拆分策略后的库
-index_name = 'aiops_v2'
+# index_name = 'aiops_v2'
+# markdown优化
+index_name = 'aiops_v3'
 
 
 def store(data_models: [DataModel]):
@@ -259,7 +261,7 @@ def search_by_json(query: str):
     return response
 
 
-# # vectorize_all()
+# vectorize_all()
 # keywords_extract_all('director')
 # keywords_extract_all('rcp')
 
@@ -272,3 +274,5 @@ def search_by_json(query: str):
 #     }
 # }
 # search_by_json(query)
+
+# delete_index()
